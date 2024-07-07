@@ -21,7 +21,7 @@ import (
 /*
 Соединение к базе данных
 */
-type PostgresConnector struct {
+type Connector struct {
 	Name       string
 	Status     string
 	Connection *sql.DB
@@ -36,8 +36,8 @@ type Config struct {
 	DBname   string
 }
 
-func NewPostgresConnector(config *Config) (*PostgresConnector, error) {
-	var pc PostgresConnector
+func NewConnector(config *Config) (*Connector, error) {
+	var c Connector
 
 	// Формируем строку для подключения
 	connectString := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=disable",
@@ -55,31 +55,31 @@ func NewPostgresConnector(config *Config) (*PostgresConnector, error) {
 		return nil, err
 	}
 
-	pc.Config = config
-	pc.Connection = db
-	return &pc, nil
+	c.Config = config
+	c.Connection = db
+	return &c, nil
 }
 
-func (pc *PostgresConnector) RequestWithResponse(request string) (*sql.Rows, error) {	
-	return pc.Connection.Query(request)
+func (c *Connector) RequestWithResponse(request string) (*sql.Rows, error) {	
+	return c.Connection.Query(request)
 }
 
-func (pc *PostgresConnector) RequestWithoutResponse(request string) (sql.Result, error) {
-	return pc.Connection.Exec(request)
+func (c *Connector) RequestWithoutResponse(request string) (sql.Result, error) {
+	return c.Connection.Exec(request)
 }
 
-func (pc *PostgresConnector) IsAlive() bool {
-	err := pc.Connection.Ping()
+func (c *Connector) IsAlive() bool {
+	err := c.Connection.Ping()
 	if err != nil {
-		pc.Status = "Dead"
+		c.Status = "Dead"
 		return false
 	}
 	return true
 }
 
-func (pc *PostgresConnector) CloseConnection() {
-	pc.Connection.Close()
-	pc.Status = "Was closed"
+func (c *Connector) CloseConnection() {
+	c.Connection.Close()
+	c.Status = "Was closed"
 }
 
 func capitalizeFirst(s string) string {
