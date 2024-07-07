@@ -2,8 +2,18 @@ package connector
 
 import (
 	"fmt"
+	//"reflect"
 	"log"
+	"unicode"
+
+	//"time"
+	//"reflect"
 	"database/sql"
+	//"os"
+	//"os/exec"
+
+	//"plugin"
+	//"text/template"
 
 	_ "github.com/lib/pq"
 )
@@ -12,18 +22,18 @@ import (
 Соединение к базе данных
 */
 type PostgresConnector struct {
-	Name string
-	Status string
+	Name       string
+	Status     string
 	Connection *sql.DB
 	*Config
 }
 
 type Config struct {
-	Host string
-	Port string
-	User string
+	Host     string
+	Port     string
+	User     string
 	Password string
-	DBname string
+	DBname   string
 }
 
 func NewPostgresConnector(config *Config) (*PostgresConnector, error) {
@@ -50,19 +60,7 @@ func NewPostgresConnector(config *Config) (*PostgresConnector, error) {
 	return &pc, nil
 }
 
-func (pc *PostgresConnector) RequestWithResponse(request string) (*sql.Rows, error) {
-	rows, err := pc.Connection.Query(request)
-	if err != nil {
-		return nil, err
-	}
-
-	rows.Columns()
-	x, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-
-	x[0].ScanType()
+func (pc *PostgresConnector) RequestWithResponse(request string) (*sql.Rows, error) {	
 	return pc.Connection.Query(request)
 }
 
@@ -82,4 +80,36 @@ func (pc *PostgresConnector) IsAlive() bool {
 func (pc *PostgresConnector) CloseConnection() {
 	pc.Connection.Close()
 	pc.Status = "Was closed"
+}
+
+func capitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+
+	runes := []rune(s)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
+}
+
+func SqlRowsToSliceOfMap(rows *sql.Rows) ([]map[string]interface{}, error) {
+	// Получаем имя столбцов
+	columnsNames, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]map[string]interface{}, 0)
+    for rows.Next() {
+		row := make([]interface{}, len(columnsNames))
+        if err := rows.Scan(row...); err != nil {
+            return nil, err
+        }
+		rowMap := make(map[string]interface{})
+		for i, val := range row {
+			rowMap[columnsNames[i]] = val
+		} 
+		res = append(res, rowMap)
+    }
+	return res, nil
 }

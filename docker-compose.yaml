@@ -3,20 +3,18 @@ services:
   postgres:
     image: postgres:16.1
     container_name: postgres_test
-    depends_on:
-      - rabbitmq
     environment:
       POSTGRES_DB: "main_database"
       POSTGRES_USER: "leonid"
       POSTGRES_PASSWORD: "password"
-    #volumes:
-      #- ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     networks:
       - leonid_network
     
-  orchestrator-server:
+  postgres_server:
     build:
       context: .
       dockerfile: Postgres_server

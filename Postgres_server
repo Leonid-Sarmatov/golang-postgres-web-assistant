@@ -1,0 +1,8 @@
+FROM golang:1.22
+
+WORKDIR /
+
+COPY . .
+
+EXPOSE 8082 8082
+CMD ["go", "run", "cmd/app/main.go"]
